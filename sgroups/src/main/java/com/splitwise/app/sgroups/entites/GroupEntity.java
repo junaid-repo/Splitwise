@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class GroupEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
     private String groupUsername;
 
