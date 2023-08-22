@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 
 @Entity
-@Table(name="Group")
+@Table(name="GroupBasics")
 @Getter
 @Setter
 @ToString

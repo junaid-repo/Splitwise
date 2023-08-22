@@ -17,7 +17,7 @@ public class SgroupsApplication {
 
 	@Bean
 	@LoadBalanced
-	RestTemplate restTemplate(){
+	public RestTemplate restTemplate(){
 		return  new RestTemplate();
 	}
 
