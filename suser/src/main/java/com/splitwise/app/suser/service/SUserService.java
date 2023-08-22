@@ -43,7 +43,19 @@ public class SUserService {
 	}
 
     public UserResponse getByUsername(String username) {
+		UserResponse response = new UserResponse();
+		SUserEntity retOut = new SUserEntity();
+		retOut= userRepo.findbyUsername(username);
+		if(retOut!=null) {
+			response.setUsername(retOut.getUsername());
+			response.setReturnMsg("Found");
+			response.setReturnCode("200");
+		}
+		else{
+			response.setReturnMsg("Not Found");
+			response.setReturnCode("404");
+		}
 
-		return userRepo.findbyUsername(username);
+		return response;
     }
 }

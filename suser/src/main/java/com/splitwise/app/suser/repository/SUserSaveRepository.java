@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface SUserSaveRepository extends JpaRepository<SUserEntity, Integer>{
 
-    @Query(value="", nativeQuery = true)
-    UserResponse findbyUsername(String username);
+    @Query(value="select * from suser s where s.username=?1", nativeQuery = true)
+    SUserEntity findbyUsername(String username);
 }

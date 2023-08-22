@@ -1,6 +1,8 @@
 package com.splitwise.app.sgroups.externalapi;
 
 import com.splitwise.app.sgroups.vo.UserResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -12,13 +14,16 @@ import java.util.Base64;
 @Component
 public class SUserFacade {
 
+    Logger log =  LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     RestTemplate restTemplate;
 
 
     public boolean checkUsername(String tempUsername) {
 
-        String uri="http://"+"SUSER-SERVICE"+"/user/getUserDetails/";
+        String uri="http://"+"SUSER-SERVICE"+"/sw/users/getUserDetails/";
+        log.info(uri+tempUsername);
         ResponseEntity<UserResponse> userDetail=restTemplate.exchange(uri+tempUsername, HttpMethod.GET, new HttpEntity<>(httpHeader()), UserResponse.class);
 
     if (userDetail!=null)

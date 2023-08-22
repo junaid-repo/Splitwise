@@ -3,7 +3,7 @@ server:
       
 spring:
      datasource:
-       url: jdbc:postgresql://localhost:5432/splitwise
+       url: jdbc:postgresql://localhost:5432/sbills
        username: postgres
        password: pass
      jpa:
