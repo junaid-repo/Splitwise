@@ -1,0 +1,25 @@
+server:
+   port: 9900
+      
+spring:
+     datasource:
+       url: jdbc:postgresql://localhost:5432/splitwise
+       username: postgres
+       password: pass
+     jpa:
+       hibernate:
+         ddl-auto: update
+       show-sql: true
+       
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: localhost
+
+
+
+
