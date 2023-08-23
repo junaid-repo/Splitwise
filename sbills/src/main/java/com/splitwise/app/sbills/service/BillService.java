@@ -90,6 +90,7 @@ public class BillService {
         logDetails.setGroupName(req.getGroupName());
         logDetails.setUsername(req.getPaidBy());
         logDetails.setMessage("You added " + req.getAmount() + " in group " + req.getGroupName());
+        logRepo.save(logDetails);
         BaseOutput response = new BaseOutput();
         response.setReturnCode("201");
         response.setReturnMsg("Updated");

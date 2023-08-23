@@ -16,7 +16,7 @@ public class LogDetailsEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private String id;
+    private Integer id;
 
     LocalDateTime createdDate;
     String username;
