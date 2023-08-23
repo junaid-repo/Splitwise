@@ -14,7 +14,7 @@ import java.util.Base64;
 @Component
 public class SUserFacade {
 
-    Logger log =  LoggerFactory.getLogger(this.getClass());
+    Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     RestTemplate restTemplate;
@@ -22,26 +22,26 @@ public class SUserFacade {
 
     public boolean checkUsername(String tempUsername) {
 
-        String uri="http://"+"SUSER-SERVICE"+"/sw/users/getUserDetails/";
-        log.info(uri+tempUsername);
-        ResponseEntity<UserResponse> userDetail=restTemplate.exchange(uri+tempUsername, HttpMethod.GET, new HttpEntity<>(httpHeader()), UserResponse.class);
-
-    if (userDetail!=null)
-                return true;
-    else
-       return false;
+        String uri = "http://" + "SUSER-SERVICE" + "/sw/users/getUserDetails/";
+        log.info(uri + tempUsername);
+        ResponseEntity<UserResponse> userDetail = restTemplate.exchange(uri + tempUsername, HttpMethod.GET, new HttpEntity<>(httpHeader()), UserResponse.class);
+        log.info("The response of the service call is--> " + userDetail);
+        if (userDetail.getBody().getUsername() != null)
+            return true;
+        else
+            return false;
 
     }
 
-    private HttpHeaders httpHeader(){
+    private HttpHeaders httpHeader() {
         HttpHeaders httpHeaders = new HttpHeaders();
-       // httpHeaders.add("Authorization", "Basic "+getBasicAuthHeader());
+        // httpHeaders.add("Authorization", "Basic "+getBasicAuthHeader());
         httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
         return httpHeaders;
     }
 
-    private String getBasicAuthHeader(){
-        String creds="USER1:pass";
+    private String getBasicAuthHeader() {
+        String creds = "USER1:pass";
         return new String(Base64.getEncoder().encode(creds.getBytes()));
     }
 

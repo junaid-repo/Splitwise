@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,6 +54,8 @@ public class GroupServices {
 
                         response.setReturnCode("404");
                         response.setReturnMsg("User " + tempUsername + " not found in System, please try valid users");
+                        return response;
+
                     } else {
                         response.setReturnCode("201");
                         response.setReturnMsg("Valid");
@@ -60,6 +63,7 @@ public class GroupServices {
                     return response;
                 }
         ).collect(Collectors.toList());
+
 
         for (SaveGroupResponse tempCheckList : checkList) {
             if (tempCheckList.getReturnCode().equals("404"))
@@ -107,6 +111,14 @@ public class GroupServices {
             response.setReturnMsg("Something went wrong");
         }
 
+
+        return response;
+    }
+
+    public  List<GroupMembers> getGroupDetails(String groupName) {
+        List<GroupMembers> response= new ArrayList<>();
+
+        response=groupMemSave.findByUsername(groupName);
 
         return response;
     }
