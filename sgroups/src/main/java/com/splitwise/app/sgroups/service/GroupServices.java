@@ -2,6 +2,7 @@ package com.splitwise.app.sgroups.service;
 
 
 import com.splitwise.app.sgroups.dto.SaveGroupResponse;
+import com.splitwise.app.sgroups.dto.DashboardDetails;
 import com.splitwise.app.sgroups.dto.GroupDetails;
 import com.splitwise.app.sgroups.entites.GroupEntity;
 import com.splitwise.app.sgroups.entites.GroupMembers;
@@ -122,4 +123,15 @@ public class GroupServices {
 
         return response;
     }
+
+	public DashboardDetails getDashboardDetails(String username) {
+		
+		DashboardDetails response = new DashboardDetails();
+		
+		
+		
+		
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

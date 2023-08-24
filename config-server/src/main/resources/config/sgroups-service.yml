@@ -40,7 +40,7 @@ management:
 resilience4j:
   circuitbreaker:
     instances:
-      ratingHotelBreaker:
+      createGroupCB:
         registerHealthIndicator: true
         eventConsumerBufferSize: 10
         failureRateThreshold: 50
@@ -50,6 +50,22 @@ resilience4j:
         permittedNumberOfCallsInHalfOpenState: 3
         slidingWindowSize: 10
         slidingWindowType: COUNT_BASED
+        
+  retry:
+   instances:
+      createGroupRetry:
+         max-attempts: 3
+         wait-duration: 5s
+         
+  
+  ratelimiter:
+    instances:
+      createGroupRL:
+        limit-refresh-period: 4s
+        limit-for-period: 2
+        timeout-duration: 2s
+            
+         
 
 
 
