@@ -26,4 +26,10 @@ public interface GroupExSaveRepository extends JpaRepository<GroupExpenseAccount
 
 	@Query(value = "select * from group_expense_accounts gea where gea.groupname=?1  and gea.takers=?2 and gea.settled_ind is null", nativeQuery = true)
 	List<GroupExpenseAccounts> amoutTakenFromGroup(String obj, String username);
+
+	@Query(value = "update group_expense_accounts set settled_ind='Y' where giver=?1 and takers=?2", nativeQuery = true)
+	void updateTheOutstandingBalance(String friend, String self);
+
+	@Query(value = "update group_expense_accounts set settled_ind='Y' where giver=?1 and takers=?2", nativeQuery = true)
+	void updateTheOutstandingBalance2(String self, String friend);
 }

@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.splitwise.app.sbills.dto.BaseOutput;
 import com.splitwise.app.sbills.dto.DashboardDetails;
 import com.splitwise.app.sbills.dto.SplitBillRequest;
+import com.splitwise.app.sbills.dto.UserLogResponse;
+import com.splitwise.app.sbills.entities.SettleEntity;
 import com.splitwise.app.sbills.service.BillService;
 
 @RestController
@@ -40,6 +42,24 @@ public class SBillController {
     	
     	response=serv.getDashboardDetails(username);
     	return new ResponseEntity(response, HttpStatus.FOUND);    	
+    }
+    @PostMapping("/settleOutstandings")
+    ResponseEntity<BaseOutput> settleAmt(@RequestBody SettleEntity ent){
+    	
+    	BaseOutput response= new BaseOutput();
+    	response=serv.settleAmt(ent);
+    	
+    	return new ResponseEntity(response, HttpStatus.FOUND);
+    	
+    }
+    @GetMapping("/history/{username}")
+    ResponseEntity<UserLogResponse> userWiseLogs(@PathVariable String username){
+    	
+    	UserLogResponse response = new UserLogResponse();
+    	response=serv.getUserLogs(username);
+    	
+    	return new ResponseEntity(response, HttpStatus.FOUND);
+    	
     }
 
 }

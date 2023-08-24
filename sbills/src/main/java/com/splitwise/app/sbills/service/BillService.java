@@ -13,15 +13,19 @@ import org.springframework.stereotype.Service;
 import com.splitwise.app.sbills.dto.BaseOutput;
 import com.splitwise.app.sbills.dto.DashboardDetails;
 import com.splitwise.app.sbills.dto.GroupWise;
+import com.splitwise.app.sbills.dto.LogMessageDetails;
 import com.splitwise.app.sbills.dto.MemberWise;
 import com.splitwise.app.sbills.dto.SplitBillRequest;
+import com.splitwise.app.sbills.dto.UserLogResponse;
 import com.splitwise.app.sbills.entities.ExpenseSaveEntity;
 import com.splitwise.app.sbills.entities.GroupExpenseAccounts;
 import com.splitwise.app.sbills.entities.LogDetailsEntity;
+import com.splitwise.app.sbills.entities.SettleEntity;
 import com.splitwise.app.sbills.externalApi.BillFacade;
 import com.splitwise.app.sbills.repository.ExpenseSaveRepository;
 import com.splitwise.app.sbills.repository.GroupExSaveRepository;
 import com.splitwise.app.sbills.repository.LogSaveRepository;
+import com.splitwise.app.sbills.repository.SettleSaveRepository;
 import com.splitwise.app.sbills.vo.GroupMembers;
 
 @Service
@@ -32,6 +36,9 @@ public class BillService {
 
 	@Autowired
 	GroupExSaveRepository groupExSave;
+	
+	@Autowired
+	SettleSaveRepository esRepo;
 
 	@Autowired
 	LogSaveRepository logRepo;
@@ -214,6 +221,114 @@ public class BillService {
 			response.add(retObj);
 		});
 		
+		return response;
+	}
+
+	public BaseOutput settleAmt(SettleEntity ent) {
+		
+		BaseOutput response= new BaseOutput();
+		Double totalAmount=0d;
+		
+		String self=ent.getYourName();
+		String friend=ent.getToMember();
+		
+		List<GroupExpenseAccounts> expenTakerList2 = new ArrayList<>();
+		expenTakerList2 = groupExSave.findReceiverByUsername(self, friend);
+		Double givenAmt = 0d;
+		for (GroupExpenseAccounts tempAc : expenTakerList2) {
+			givenAmt = givenAmt + tempAc.getAmount();
+		}
+
+		List<GroupExpenseAccounts> expenGiversList = new ArrayList<>();
+		expenGiversList = groupExSave.findReceiverByUsername(friend, self);
+		Double takenAmt = 0d;
+		for (GroupExpenseAccounts tempAc : expenGiversList) {
+			takenAmt = takenAmt + tempAc.getAmount();
+		}
+		MemberWise emd= new MemberWise();
+		totalAmount=totalAmount+givenAmt;
+		totalAmount=totalAmount-takenAmt;
+		
+		if(totalAmount>-1) {
+			response.setReturnCode("400");
+			response.setReturnMsg(self+" do not owe any money to "+friend);
+			return response;
+		}else {
+			List<GroupExpenseAccounts> expenseTakerList3= new ArrayList<>();
+			
+			try {
+				groupExSave.updateTheOutstandingBalance(friend, self);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				groupExSave.updateTheOutstandingBalance2(self, friend);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			response.setReturnCode("200");
+			response.setReturnMsg("Done");
+			
+			LocalDateTime date = LocalDateTime.now();
+			LogDetailsEntity logDetails= new LogDetailsEntity();
+			logDetails.setCreatedDate(date);
+			logDetails.setUsername(self);
+			logDetails.setGroupName("Whole");
+			logDetails.setMessage("You paid all the outstanding amount to user "+friend);
+			logRepo.save(logDetails);
+			
+			
+			LogDetailsEntity logDetails2= new LogDetailsEntity();
+			logDetails2.setCreatedDate(date);
+			logDetails2.setUsername(friend);
+			logDetails2.setGroupName("Whole");
+			logDetails2.setMessage(self+" paid all the outstanding amount to you ");
+			logRepo.save(logDetails2);
+			
+			
+			
+		}
+		
+		Runnable rn = new Runnable() {
+			@Override
+			public void run() {
+				SettleEntity ste =  new SettleEntity();
+				LocalDateTime dt= LocalDateTime.now();
+				ste.setUpdatedDate(dt);
+				ste.setSettleInd("Y");
+				ste.setYourName(ent.getYourName());
+				ste.setToMember(ent.getToMember());
+				ste=esRepo.save(ste);
+				
+			}
+		};
+		
+		Thread th = new Thread(rn);
+		th.start();
+		
+		
+		
+		return response;
+	}
+	
+	public UserLogResponse getUserLogs(String username) {
+		UserLogResponse response = new UserLogResponse();
+		
+		List<LogDetailsEntity> logDetails = new ArrayList<>();
+		logDetails=logRepo.findLogs(username);
+		
+		List<LogMessageDetails> logs = new ArrayList<>();
+		
+		logDetails.stream().forEach(obj->{
+			LogMessageDetails lmd= new LogMessageDetails();
+			lmd.setDate(obj.getCreatedDate());
+			lmd.setMessage(obj.getMessage());
+			logs.add(lmd);
+		});
+		response.setLogs(logs);
 		return response;
 	}
 
