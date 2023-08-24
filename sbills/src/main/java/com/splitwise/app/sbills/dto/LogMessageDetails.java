@@ -14,6 +14,7 @@ public class LogMessageDetails {
 	
 	LocalDateTime date;
 	String message;
-	
+
+	//entering here
 
 }

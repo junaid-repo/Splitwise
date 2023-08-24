@@ -11,6 +11,8 @@ import lombok.ToString;
 @ToString
 public class UserLogResponse {
 	List<LogMessageDetails> logs;
+
+	//entering here
 	
 
 }
