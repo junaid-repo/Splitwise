@@ -1,5 +1,7 @@
 package com.splitwise.app.sbills.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,49 +19,64 @@ import com.splitwise.app.sbills.dto.UserLogResponse;
 import com.splitwise.app.sbills.entities.SettleEntity;
 import com.splitwise.app.sbills.service.BillService;
 
+import io.github.resilience4j.retry.annotation.Retry;
+
 @RestController
 @RequestMapping("/sw/bills")
 public class SBillController {
 
-    @Autowired
-    BillService serv;
+	Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @PostMapping("/splitBills")
-    ResponseEntity<BaseOutput> splitBill(@RequestBody SplitBillRequest req){
+	@Autowired
+	BillService serv;
 
-        BaseOutput response = new BaseOutput();
+	@PostMapping("/splitBills")
+	@Retry(name = "splitBillRT", fallbackMethod = "fbmForSplitBill")
+	ResponseEntity<BaseOutput> splitBill(@RequestBody SplitBillRequest req) {
 
-        response=serv.splitBill(req);
+		BaseOutput response = new BaseOutput();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		response = serv.splitBill(req);
 
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
+	}
 
-    }
-    @GetMapping("/dashboardDetails/{username}")
-   ResponseEntity <DashboardDetails> getDashboardDetails(@PathVariable String username){
-    	DashboardDetails response = new DashboardDetails();
-    	
-    	response=serv.getDashboardDetails(username);
-    	return new ResponseEntity(response, HttpStatus.FOUND);    	
-    }
-    @PostMapping("/settleOutstandings")
-    ResponseEntity<BaseOutput> settleAmt(@RequestBody SettleEntity ent){
-    	
-    	BaseOutput response= new BaseOutput();
-    	response=serv.settleAmt(ent);
-    	
-    	return new ResponseEntity(response, HttpStatus.FOUND);
-    	
-    }
-    @GetMapping("/history/{username}")
-    ResponseEntity<UserLogResponse> userWiseLogs(@PathVariable String username){
-    	
-    	UserLogResponse response = new UserLogResponse();
-    	response=serv.getUserLogs(username);
-    	
-    	return new ResponseEntity(response, HttpStatus.FOUND);
-    	
-    }
+	ResponseEntity<BaseOutput> fbmForSplitBill(SplitBillRequest req, Exception ex) {
+		BaseOutput response = new BaseOutput();
+
+		response.setReturnCode("502");
+		response.setReturnMsg("User service is down");
+		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(response);
+
+	}
+
+	@GetMapping("/dashboardDetails/{username}")
+	ResponseEntity<DashboardDetails> getDashboardDetails(@PathVariable String username) {
+		DashboardDetails response = new DashboardDetails();
+
+		response = serv.getDashboardDetails(username);
+		return new ResponseEntity(response, HttpStatus.FOUND);
+	}
+
+	@PostMapping("/settleOutstandings")
+	ResponseEntity<BaseOutput> settleAmt(@RequestBody SettleEntity ent) {
+
+		BaseOutput response = new BaseOutput();
+		response = serv.settleAmt(ent);
+
+		return new ResponseEntity(response, HttpStatus.FOUND);
+
+	}
+
+	@GetMapping("/history/{username}")
+	ResponseEntity<UserLogResponse> userWiseLogs(@PathVariable String username) {
+
+		UserLogResponse response = new UserLogResponse();
+		response = serv.getUserLogs(username);
+
+		return new ResponseEntity(response, HttpStatus.FOUND);
+
+	}
 
 }

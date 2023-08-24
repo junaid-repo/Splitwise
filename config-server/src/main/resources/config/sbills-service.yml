@@ -20,6 +20,13 @@ eureka:
   instance:
     hostname: localhost
 
-
+resilience4j:
+   retry:
+      instances: 
+         splitBillRT:
+            max-attempts: 5
+            wait-duration: 5s
+         
+         
 
 
