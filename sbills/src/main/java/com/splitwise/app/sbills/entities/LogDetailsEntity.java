@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
+@Builder
 public class LogDetailsEntity {
 
     @Id
@@ -22,4 +23,5 @@ public class LogDetailsEntity {
     String username;
     String groupName;
     String message;
+    String eventCode;
 }

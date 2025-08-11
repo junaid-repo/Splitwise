@@ -9,7 +9,7 @@ import com.splitwise.app.sgroups.entites.GroupMembers;
 import com.splitwise.app.sgroups.externalapi.SUserFacade;
 import com.splitwise.app.sgroups.repository.GroupBasicSaveRepository;
 import com.splitwise.app.sgroups.repository.GroupMemberSaveRepository;
-import org.apache.http.HttpStatus;
+//import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

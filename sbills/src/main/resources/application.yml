@@ -2,4 +2,4 @@ spring:
   application:
     name: sbills-service
   config:
-    import: "optional:configserver:http://splitwise-configserver-env.eba-gspvtwex.eu-no rth-1.elasticbeanstalk.com"
+    import: "optional:configserver:http://splitwise-configserver-env.eba-gspvtwex.eu-north-1.elasticbeanstalk.com"

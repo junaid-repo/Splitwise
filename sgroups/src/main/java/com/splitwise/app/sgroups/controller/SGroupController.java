@@ -3,6 +3,7 @@ package com.splitwise.app.sgroups.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+//import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ import com.splitwise.app.sgroups.dto.SaveGroupResponse;
 import com.splitwise.app.sgroups.entites.GroupMembers;
 import com.splitwise.app.sgroups.service.GroupServices;
 
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+//import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 
 @RestController
 @RequestMapping("/sw/groups")
@@ -36,8 +37,8 @@ public class SGroupController {
     int countRetry=0;
     @PostMapping("/createGroup")
    // @CircuitBreaker(name = "createGroupCB", fallbackMethod = "fallbackMethodForCreateGroup")
-    //@Retry(name = "createGroupRetry", fallbackMethod = "fallbackMethodForCreateGroup")
-    @RateLimiter(name = "createGroupRL", fallbackMethod = "fallbackMethodForCreateGroup")
+   // @Retry(name = "createGroupRetry", fallbackMethod = "fallbackMethodForCreateGroup")
+    //@RateLimiter(name = "createGroupRL", fallbackMethod = "fallbackMethodForCreateGroup")
     ResponseEntity<SaveGroupResponse> createGroup(@RequestBody GroupDetails request) {
 
         SaveGroupResponse response = new SaveGroupResponse();

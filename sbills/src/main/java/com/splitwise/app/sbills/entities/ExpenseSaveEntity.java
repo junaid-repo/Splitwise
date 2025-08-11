@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
+@Builder
 public class ExpenseSaveEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

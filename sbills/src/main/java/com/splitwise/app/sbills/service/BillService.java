@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.splitwise.app.sbills.dto.BaseOutput;
 import com.splitwise.app.sbills.dto.DashboardDetails;
 import com.splitwise.app.sbills.dto.GroupWise;
@@ -22,6 +25,7 @@ import com.splitwise.app.sbills.entities.GroupExpenseAccounts;
 import com.splitwise.app.sbills.entities.LogDetailsEntity;
 import com.splitwise.app.sbills.entities.SettleEntity;
 import com.splitwise.app.sbills.externalApi.BillFacade;
+import com.splitwise.app.sbills.externalApi.SQSUpdate;
 import com.splitwise.app.sbills.repository.ExpenseSaveRepository;
 import com.splitwise.app.sbills.repository.GroupExSaveRepository;
 import com.splitwise.app.sbills.repository.LogSaveRepository;
@@ -45,16 +49,21 @@ public class BillService {
 
 	@Autowired
 	BillFacade comm;
+	
+	@Autowired
+	SQSUpdate sqsUpdate;
 
 	Logger log = LoggerFactory.getLogger(this.getClass());
 
 	public BaseOutput splitBill(SplitBillRequest req) {
-		ExpenseSaveEntity ese = new ExpenseSaveEntity();
+		//ExpenseSaveEntity ese = new ExpenseSaveEntity();
 		LocalDateTime updatedDate = LocalDateTime.now();
 
-		ese.setUpdatedDate(updatedDate);
-		ese.setGroupName(req.getGroupName());
-		ese.setRemarks(req.getRemarks());
+		var ese = ExpenseSaveEntity.builder()
+				.updatedDate(LocalDateTime.now())
+				.groupName(req.getGroupName())
+				.remarks(req.getRemarks())
+				.build();
 		ese = exSaveRepo.save(ese);
 
 		List<GroupMembers> membersList = comm.getGroupMembersList(req.getGroupName());
@@ -70,29 +79,33 @@ public class BillService {
 			String taker = "";
 			String memberUsername = obj.getMemberUsername();
 			taker = obj.getMemberUsername();
-			GroupExpenseAccounts gea = new GroupExpenseAccounts();
 			Double eachOneContri = (double) (Math.round(eachOneContribution));
-			gea.setAmount(eachOneContri);
-			gea.setCreatedDate(ldt);
-			gea.setGiver(req.getPaidBy());
-			gea.setTakers(taker);
-			gea.setGroupname(req.getGroupName());
-			gea.setEventName("SAVE");
+
+			var gea = GroupExpenseAccounts.builder()
+					.amount((double) Math.round(eachOneContribution))
+					.createdDate(ldt)
+					.giver(req.getPaidBy())
+					.takers(taker)
+					.groupname(req.getGroupName())
+					.eventName("SAVE")
+					.build();
 			groupExSave.save(gea);
 			final String logMem = obj.getMemberUsername();
 
 			Runnable rn = new Runnable() {
 				@Override
 				public void run() {
-					LocalDateTime updateDate = LocalDateTime.now();
-					LogDetailsEntity logDetails = new LogDetailsEntity();
-					logDetails.setCreatedDate(ldt);
-					logDetails.setUsername(logMem);
-					logDetails.setGroupName(req.getGroupName());
-					String message = "You owe " + String.valueOf(Math.round(eachOneContri)) + " to user "
-							+ req.getPaidBy() + " in group " + req.getGroupName();
 
-					logDetails.setMessage(message);
+
+					LogDetailsEntity logDetails = LogDetailsEntity.builder()
+							.createdDate(ldt)
+							.username(logMem)
+							.groupName(req.getGroupName())
+							.message("You owe " + String.valueOf(Math.round(eachOneContri)) + " to user "
+									+ req.getPaidBy() + " in group " + req.getGroupName())
+							.build();
+
+
 					if (req.getPaidBy().equals(logMem) == false) {
 						logDetails = logRepo.save(logDetails);
 					}
@@ -103,11 +116,12 @@ public class BillService {
 
 		});
 		LocalDateTime date = LocalDateTime.now();
-		LogDetailsEntity logDetails = new LogDetailsEntity();
-		logDetails.setCreatedDate(date);
-		logDetails.setGroupName(req.getGroupName());
-		logDetails.setUsername(req.getPaidBy());
-		logDetails.setMessage("You added " + req.getAmount() + " in group " + req.getGroupName());
+		var logDetails = LogDetailsEntity.builder()
+				.createdDate(date)
+				.groupName(req.getGroupName())
+				.username(req.getPaidBy())
+				.message("You added " + req.getAmount() + " in group " + req.getGroupName())
+				.build();
 		logRepo.save(logDetails);
 		BaseOutput response = new BaseOutput();
 		response.setReturnCode("201");
@@ -273,20 +287,39 @@ public class BillService {
 			response.setReturnMsg("Done");
 			
 			LocalDateTime date = LocalDateTime.now();
-			LogDetailsEntity logDetails= new LogDetailsEntity();
-			logDetails.setCreatedDate(date);
-			logDetails.setUsername(self);
-			logDetails.setGroupName("Whole");
-			logDetails.setMessage("You paid all the outstanding amount to user "+friend);
+			var logDetails=  LogDetailsEntity.builder()
+					.createdDate(date)
+					.username(self)
+					.groupName("Whole")
+					.eventCode("PAID")
+					.message("You paid all the outstanding amount to user " + friend)
+					.build();
 			logRepo.save(logDetails);
+
+		var	logDetails2 = LogDetailsEntity.builder()
+					.createdDate(date)
+					.username(friend)
+					.groupName("Whole")
+					.eventCode("SETTLED")
+					.message(self + " paid all the outstanding amount to you")
+					.build();
+
+			logDetails2=	logRepo.save(logDetails2);
+
+			
+			ObjectMapper objectMapper = new ObjectMapper();
+			objectMapper.registerModule(new JavaTimeModule());
+            String jsonString;
+			try {
+				jsonString = objectMapper.writeValueAsString(logDetails2);
+				sqsUpdate.sendMessage(jsonString);
+			} catch (JsonProcessingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			
-			LogDetailsEntity logDetails2= new LogDetailsEntity();
-			logDetails2.setCreatedDate(date);
-			logDetails2.setUsername(friend);
-			logDetails2.setGroupName("Whole");
-			logDetails2.setMessage(self+" paid all the outstanding amount to you ");
-			logRepo.save(logDetails2);
+
 			
 			
 			
@@ -297,11 +330,12 @@ public class BillService {
 			public void run() {
 				SettleEntity ste =  new SettleEntity();
 				LocalDateTime dt= LocalDateTime.now();
-				ste.setUpdatedDate(dt);
-				ste.setSettleInd("Y");
-				ste.setYourName(ent.getYourName());
-				ste.setToMember(ent.getToMember());
-				ste=esRepo.save(ste);
+				ste = SettleEntity.builder()
+						.updatedDate(dt)
+						.settleInd("Y")
+						.yourName(ent.getYourName())
+						.toMember(ent.getToMember())
+						.build();
 				
 			}
 		};

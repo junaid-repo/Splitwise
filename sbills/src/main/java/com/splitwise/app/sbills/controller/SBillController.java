@@ -19,7 +19,7 @@ import com.splitwise.app.sbills.dto.UserLogResponse;
 import com.splitwise.app.sbills.entities.SettleEntity;
 import com.splitwise.app.sbills.service.BillService;
 
-import io.github.resilience4j.retry.annotation.Retry;
+//import io.github.resilience4j.retry.annotation.Retry;
 
 @RestController
 @RequestMapping("/sw/bills")
@@ -31,7 +31,7 @@ public class SBillController {
 	BillService serv;
 
 	@PostMapping("/splitBills")
-	@Retry(name = "splitBillRT", fallbackMethod = "fbmForSplitBill")
+//	@Retry(name = "splitBillRT", fallbackMethod = "fbmForSplitBill")
 	ResponseEntity<BaseOutput> splitBill(@RequestBody SplitBillRequest req) {
 
 		BaseOutput response = new BaseOutput();

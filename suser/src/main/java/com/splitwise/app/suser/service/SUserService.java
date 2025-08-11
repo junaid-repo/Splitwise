@@ -1,20 +1,26 @@
 package com.splitwise.app.suser.service;
 
-import java.time.LocalDateTime;
-
+import com.mailjet.client.errors.MailjetException;
+import com.mailjet.client.errors.MailjetSocketTimeoutException;
+import com.splitwise.app.suser.cloud.EmailSender;
+import com.splitwise.app.suser.dto.MessageDTO;
+import com.splitwise.app.suser.dto.UserResponse;
+import com.splitwise.app.suser.entity.SUserEntity;
+import com.splitwise.app.suser.repository.SUserSaveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.splitwise.app.suser.dto.UserResponse;
-import com.splitwise.app.suser.entity.SUserEntity;
-import com.splitwise.app.suser.repository.SUserSaveRepository;
+import java.time.LocalDateTime;
 
 @Service
 public class SUserService {
 
 	@Autowired
 	SUserSaveRepository userRepo;
+
+	@Autowired
+	EmailSender emailSender;
 
 	public UserResponse createUser(SUserEntity req) {
 		UserResponse response = new UserResponse();
@@ -57,5 +63,19 @@ public class SUserService {
 		}
 
 		return response;
+    }
+
+	public void sendEmail(MessageDTO messageDTO) {
+		SUserEntity userDetails= userRepo.findbyUsername(messageDTO.getUsername());
+		String fromEmailId="tahanasim3001@gmail.com";
+        try {
+            emailSender.sendEmail(userDetails.getEmail(),fromEmailId,userDetails.getFirstName()+" "+userDetails.getLastName(), "SplitWise",
+                    messageDTO.getEventCode(), messageDTO.getMessage());
+        } catch (MailjetException e) {
+            throw new RuntimeException(e);
+        } catch (MailjetSocketTimeoutException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

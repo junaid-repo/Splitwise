@@ -1,6 +1,11 @@
 server:
   port: ${PORT:5000}
 
+
 spring:
-  profiles:
-    active: native
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/junaid-repo/microservices-properties.git
+          clone-on-start: true
